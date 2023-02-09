@@ -1,0 +1,64 @@
+/ {
+
+   chosen {
+      bootargs = "earlycon console=ttyPS0,115200 clk_ignore_unused root=/dev/mmcblk0p2 rw rootwait cma=512M rfkill.default_state=1";
+   };
+   
+   wmmcsdio_fixed: fixedregulator-mmcsdio {
+      compatible = "regulator-fixed";
+      regulator-name = "wmmcsdio_fixed";
+      regulator-min-microvolt = <3300000>;
+      regulator-max-microvolt = <3300000>;
+      regulator-always-on;
+      regulator-boot-on;
+   };
+
+   sdio_pwrseq: sdio-pwrseq {  /* This needs to be able to manipulate the chip_en and the resetn properly */
+      compatible = "mmc-pwrseq-simple";
+      reset-gpios = <&gpio 7 1>; // MIO[7] for WILC3000 RESETN, Active low
+      post-power-on-delay-ms = <10>;
+      chip_en-gpios = <&gpio 8 1>;
+   };
+};
+
+&amba_pl{
+    axidma_chrdev: axidma_chrdev@0 {
+            compatible = "xlnx,axidma-chrdev";
+            dmas = <&axi_dma_0 0 &axi_dma_0 1>;
+            dma-names = "tx_channel", "rx_channel";
+    };
+};
+&axi_dma_0{
+    dma-channel@a0000000 {
+	xlnx,device-id = <0x0>;
+     };
+     dma-channel@a0000030 {
+	xlnx,device-id = <0x1>;
+    };
+};
+ 
+/* SD0 only supports 3.3V, no level shifter */
+&sdhci0 {
+   no-1-8-v;
+   disable-wp;
+};
+
+&sdhci1 {
+   bus-width = <0x4>;
+   non-removable;
+   disable-wp;
+   mmc-pwrseq = <&sdio_pwrseq>;
+   max-frequency = <50000000>;
+   vqmmc-supply = <&wmmcsdio_fixed>;
+   #address-cells = <1>;
+   #size-cells = <0>;
+   wilc_sdio@1 {
+      compatible = "microchip,wilc3000", "microchip,wilc3000";
+      reg = <0>;
+      // interrupt-parent = <&gpio>; // Microchip driver DOES NOT use gpio irq any more!
+      // interrupts = <76 2>; /* MIO76 WILC IRQ 1V8 */ // Microchip driver DOES NOT use gpio irq any more!
+      // irq-gpios = <&gpio 76 0>; // Microchip driver DOES NOT use gpio irq any more!
+      bus-width= <0x4>;
+      status = "okay";
+   };
+};
