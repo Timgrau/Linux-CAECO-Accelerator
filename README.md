@@ -1,6 +1,6 @@
 # Entwicklung eines Embedded-Linux-Systems für Multisensor-Datenverarbeitung
 
-Dieses Repository enthält die Quelldatein der oben genannten Bachelorarbeit.
+Dieses Repository enthält die Quelldateien der oben genannten Bachelorarbeit.
 - Autor: Timo Grautstück
 - Datum: 13.01.2023
 - Abschluss: B.Sc.
